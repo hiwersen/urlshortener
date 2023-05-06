@@ -147,25 +147,34 @@ function normalizeUrl(url) {
 app.post('/api/shorturl', (req, res) => {
   let { url: original_url}  = req.body;
 
-  // Normalize the original URL before performing DNS verification
-  const normalized_url = normalizeUrl(original_url);
-  dns.lookup(normalized_url, async (error, address, family) => {
+  // If the input URL doesn't contain the protocol 
+  const protocol = /^(https?\:\/\/)/;
+  if (!protocol.test(original_url)) {
 
-    // If the input URL doesn't exist in the DNS
-    if (error) {
-      console.error(error);
+    // Send a JSON object with an error message
+    res.json({ error: 'invalid url' });
+  } else {
 
-      // Send a JSON object with an error message
-      res.json({ error: 'invalid url' });
-    } else {
+    // Normalize the original URL before performing DNS verification
+    const normalized_url = normalizeUrl(original_url);
+    dns.lookup(normalized_url, async (error, address, family) => {
 
-      // If the input URL passes DNS verification, retrieve or generate the short URL and save it to the database
-      let short_url = await generateShortUrl(original_url);
+      // If the input URL doesn't exist in the DNS
+      if (error) {
+        console.error(error);
 
-      // Send a JSON object with the original URL and its short representation
-      res.json({ original_url, short_url });
-    }
-  });
+        // Send a JSON object with an error message
+        res.json({ error: 'invalid url' });
+      } else {
+
+        // If the input URL passes DNS verification, retrieve or generate the short URL and save it to the database
+        let short_url = await generateShortUrl(original_url);
+
+        // Send a JSON object with the original URL and its short representation
+        res.json({ original_url, short_url });
+      }
+    });
+  }
 });
 
 /**
