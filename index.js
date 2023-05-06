@@ -151,6 +151,7 @@ app.post('/api/shorturl', (req, res) => {
 
   // Normalize the original URL before performing DNS verification
   original_url = normalizeUrl(original_url);
+
   dns.lookup(original_url, async (error, address, family) => {
 
     // If the input URL doesn't exist in the DNS
@@ -163,6 +164,9 @@ app.post('/api/shorturl', (req, res) => {
 
       // If the input URL passes DNS verification, retrieve or generate the short URL and save it to the database
       let short_url = await generateShortUrl(original_url);
+
+      // Add the protocol to the orginial_url for the JSON response
+      original_url = "https://" + original_url;
 
       // Send a JSON object with the original URL and its short representation
       res.json({ original_url, short_url });
