@@ -62,7 +62,7 @@ async function generateShortUrl(original_url) {
   let short_url;
   try {
 
-    // Check if the input URLal ready has a record in the database
+    // Check if the input URL already has a record in the database
     const urlDoc = await UrlModel.findOne({ original_url });
 
     // Return its existing short_url if found
@@ -100,8 +100,7 @@ async function generateShortUrl(original_url) {
  *
  * If present, the function removes:
  * leading and trailing white spaces,
- * protocol, 
- * subdomain, and 
+ * protocol, and 
  * trailing forward slash
  *
  * @param {String} url - URL to be normalized
@@ -109,13 +108,12 @@ async function generateShortUrl(original_url) {
  * 
  * @example
  * normalizeUrl('https://www.google.com/');
- * Output: 'google.com'
+ * Output: 'www.google.com'
  */
 function normalizeUrl(url) {
-  const protocol = /^(https?\:\/\/)?/;
-  const subdomain = /(www\.)?(?=.+)/;
+  const protocol = /^(https?\:\/\/)/;
   const trailingSlash = /\/$/;
-  const combinedPattern = new RegExp(protocol.source + subdomain.source + '|' + trailingSlash.source, 'g');
+  const combinedPattern = new RegExp(protocol.source + '|' + trailingSlash.source, 'g');
   return url
   .trim()
   .replace(combinedPattern, '');
@@ -150,9 +148,8 @@ app.post('/api/shorturl', (req, res) => {
   let { url: original_url}  = req.body;
 
   // Normalize the original URL before performing DNS verification
-  original_url = normalizeUrl(original_url);
-
-  dns.lookup(original_url, async (error, address, family) => {
+  const normalized_url = normalizeUrl(original_url);
+  dns.lookup(normalized_url, async (error, address, family) => {
 
     // If the input URL doesn't exist in the DNS
     if (error) {
@@ -164,9 +161,6 @@ app.post('/api/shorturl', (req, res) => {
 
       // If the input URL passes DNS verification, retrieve or generate the short URL and save it to the database
       let short_url = await generateShortUrl(original_url);
-
-      // Add the protocol to the orginial_url for the JSON response
-      original_url = "https://" + original_url;
 
       // Send a JSON object with the original URL and its short representation
       res.json({ original_url, short_url });
@@ -187,6 +181,7 @@ app.post('/api/shorturl', (req, res) => {
  */
 app.get('/api/shorturl/:short_url', async (req, res) => {
   const { short_url } = req.params;
+  
   try {
     const urlDoc = await UrlModel.findOne({ short_url });
 
@@ -194,11 +189,8 @@ app.get('/api/shorturl/:short_url', async (req, res) => {
     if (urlDoc) {
       let { original_url } = urlDoc;
 
-      // Normalize the original URL before redirecting
-      original_url = normalizeUrl(original_url);
-
       // Redirect the user to the original URL
-      res.redirect("https://" + original_url);
+      res.redirect(original_url);
     } else {
 
       // If the short URL is not found in the database, send a 404 error
