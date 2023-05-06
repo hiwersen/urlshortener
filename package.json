@@ -1,5 +1,5 @@
 {
-  "name": "shorturl",
+  "name": "urlshortener",
   "version": "0.0.3",
   "description": "API project for freeCodeCamp",
   "main": "index.js",
