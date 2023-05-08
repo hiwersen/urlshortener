@@ -72,7 +72,7 @@ async function generateShortUrl(original_url) {
     } else {
       try {
 
-        // Retrive the last document from the DB if no existing record is found
+        // Retrieve the last document from the DB if no existing record is found
         const lastDocument = await UrlModel.findOne().sort({ _id: -1 }).exec();
 
         // Generate a new short_url
