@@ -96,15 +96,17 @@ async function generateShortUrl(original_url) {
 }
 
 /**
- * The normalizeUrl function normalizes a URL string and returns the domain name
+ * The normalizeUrl function takes a URL string and returns the hostname
  *
- * If present, the function removes:
- * leading and trailing white spaces,
- * protocol, and 
- * trailing forward slash
+ * If present, the function excludes:
+ * Protocol,
+ * Path,
+ * Port number,
+ * Query string,
+ * Fragment identifier.
  *
  * @param {String} url - URL to be normalized
- * @returns {String} Normalized URL, containing domamin name
+ * @returns {String} Normalized URL, containing only the hostname
  * 
  * @example
  * normalizeUrl('https://www.google.com/');
@@ -112,11 +114,9 @@ async function generateShortUrl(original_url) {
  */
 function normalizeUrl(url) {
   const protocol = /^(https?\:\/\/)/;
-  const trailingSlash = /\/$/;
-  const combinedPattern = new RegExp(protocol.source + '|' + trailingSlash.source, 'g');
-  return url
-  .trim()
-  .replace(combinedPattern, '');
+  const afterDomain = /(?<=(https?\:\/\/)?(www\.)?.+)[\/:\?\#].*/;
+  const combinedPattern = new RegExp(protocol.source + '|' + afterDomain.source, 'g');
+  return url.replace(combinedPattern, '');
 }
 
 /**
