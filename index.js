@@ -55,7 +55,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
  * @returns {Number} Short URL, which is a serial number representing the original URL
  * 
  * @example
- * generateShortUrl('google.com');
+ * generateShortUrl('https://www.google.com');
  * Output: 1
  */
 async function generateShortUrl(original_url) {
@@ -124,32 +124,7 @@ function normalizeUrl(url) {
  * @apiName ShortenUrl
  * @apiGroup Url
  * 
- * @apiParam {String} url Required URL string encoded in the request body as a URL-encoded type. The URL can include the protocol, subdomain, and trailing forward slash.
- *
- * @apiSuccess {String} original_url Input URL
- * @apiSuccess {Number} short_url Short representation of the original URL
- *
- * @apiSuccessExample {json} Success-Response:
- *     HTTP/1.1 200 OK
- *     {
- *       "original_url": "https://www.google.com",
- *       "short_url": 1
- *     }
- * 
- * @apiError {String} error Error message when the input URL is invalid
- *
- * @apiErrorExample {json} Error-Response:
- *     HTTP/1.1 200 OK
- *     {
- *       "error": "invalid url"
- *     }
- */
-/**
- * @api {post} /api/shorturl Post Original URL to be shortened and stored in a database
- * @apiName ShortenUrl
- * @apiGroup Url
- * 
- * @apiParam {String} url Required URL string encoded in the request body as a URL-encoded type. The URL can include the protocol, subdomain, and trailing forward slash.
+ * @apiParam {String} url Required URL string encoded in the request body as a URL-encoded type
  *
  * @apiSuccess {String} original_url Input URL
  * @apiSuccess {Number} short_url Short representation of the original URL
@@ -184,10 +159,10 @@ app.post('/api/shorturl', (req, res) => {
       res.json({ error: 'invalid url' });
     } else {
 
-      // If the input URL passes DNS verification, retrieve or generate the short URL and save it to the database
+      // If the normalized_url passes DNS verification, retrieve or generate the short URL and save it to the database
       generateShortUrl(original_url).then(short_url => {
 
-        // Send a JSON object with the original URL and its short representation
+        // Send a JSON object with the original and short URLs
         res.json({ original_url, short_url });
       });
     }
