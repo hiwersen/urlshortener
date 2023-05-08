@@ -144,37 +144,54 @@ function normalizeUrl(url) {
  *       "error": "invalid url"
  *     }
  */
+/**
+ * @api {post} /api/shorturl Post Original URL to be shortened and stored in a database
+ * @apiName ShortenUrl
+ * @apiGroup Url
+ * 
+ * @apiParam {String} url Required URL string encoded in the request body as a URL-encoded type. The URL can include the protocol, subdomain, and trailing forward slash.
+ *
+ * @apiSuccess {String} original_url Input URL
+ * @apiSuccess {Number} short_url Short representation of the original URL
+ *
+ * @apiSuccessExample {json} Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "original_url": "https://www.google.com",
+ *       "short_url": 1
+ *     }
+ * 
+ * @apiError {String} error Error message when the input URL is invalid
+ *
+ * @apiErrorExample {json} Error-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "error": "invalid url"
+ *     }
+ */
 app.post('/api/shorturl', (req, res) => {
-  let { url: original_url}  = req.body;
+  let { url: original_url } = req.body;
 
-  // If the input URL doesn't contain the protocol 
-  const protocol = /^(https?\:\/\/)/;
-  if (!protocol.test(original_url)) {
+  // Normalize the original URL before performing DNS verification
+  const normalized_url = normalizeUrl(original_url);
+  dns.lookup(normalized_url, (error, address, family) => {
 
-    // Send a JSON object with an error message
-    res.json({ error: 'invalid url' });
-  } else {
+    // If the input URL doesn't exist in the DNS
+    if (error) {
+      console.error(error);
 
-    // Normalize the original URL before performing DNS verification
-    const normalized_url = normalizeUrl(original_url);
-    dns.lookup(normalized_url, async (error, address, family) => {
+      // Send a JSON object with an error message
+      res.json({ error: 'invalid url' });
+    } else {
 
-      // If the input URL doesn't exist in the DNS
-      if (error) {
-        console.error(error);
-
-        // Send a JSON object with an error message
-        res.json({ error: 'invalid url' });
-      } else {
-
-        // If the input URL passes DNS verification, retrieve or generate the short URL and save it to the database
-        let short_url = await generateShortUrl(original_url);
+      // If the input URL passes DNS verification, retrieve or generate the short URL and save it to the database
+      generateShortUrl(original_url).then(short_url => {
 
         // Send a JSON object with the original URL and its short representation
         res.json({ original_url, short_url });
-      }
-    });
-  }
+      });
+    }
+  });
 });
 
 /**
