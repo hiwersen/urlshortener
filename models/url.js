@@ -9,7 +9,7 @@ const urlSchema = new Schema({
         unique: true,
     },
     short_url: {
-        type: Number,
+        type: String,
         required: true,
         unique: true,
     },

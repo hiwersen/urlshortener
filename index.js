@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const dns = require('dns');
 const mongoose = require('mongoose');
 const UrlModel = require('./models/url');
+const shortId = require('shortid');
 
 const app = express();
 
@@ -48,15 +49,15 @@ app.use(bodyParser.urlencoded({ extended: false }));
  * The generateShortUrl asynchronous function produces a short representaion of a URL
  *
  * The function can either return an existing short version of the input URL, if a record already exists in the database
- * or generate a new short URL, which is a serial Number data type, counting from the last record URL plus 1
+ * or generate a new short URL, which is a short, non-sequential, and URL-friendly unique ID
  * The function also stores the original and short URL pair in the database
  *
  * @param {String} original_url - URL to be shortened
- * @returns {Number} Short URL, which is a serial number representing the original URL
+ * @returns {String} Short URL, which is a unique ID representing the original URL
  * 
  * @example
  * generateShortUrl('https://www.google.com');
- * Output: 1
+ * Output: 'jdHB8bBqW'
  */
 async function generateShortUrl(original_url) {
   let short_url;
@@ -70,22 +71,15 @@ async function generateShortUrl(original_url) {
       ({ short_url } = urlDoc);
       return short_url;
     } else {
+
+      // Generate and asign a unique ID to short_url
+      short_url = shortId.generate();
+
+      // Create a new instance of the UrlModel and save it to the DB
+      const urlDoc = new UrlModel({ original_url, short_url });
       try {
-
-        // Retrieve the last document from the DB if no existing record is found
-        const lastDocument = await UrlModel.findOne().sort({ _id: -1 }).exec();
-
-        // Generate a new short_url
-        short_url = lastDocument ? lastDocument.short_url + 1 : 1;
-
-        // Create a new instance of the UrlModel and save it to the DB
-        const urlDoc = new UrlModel({ original_url, short_url });
-        try {
-          await urlDoc.save();
-          return short_url;
-        } catch (error) {
-          console.error(error);
-        }
+        await urlDoc.save();
+        return short_url;
       } catch (error) {
         console.error(error);
       }
