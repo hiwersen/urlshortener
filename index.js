@@ -53,7 +53,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
  * The function also stores the original and short URL pair in the database
  *
  * @param {String} original_url - URL to be shortened
- * @returns {String} Short URL, which is a unique ID representing the original URL
+ * @returns {String} Short URL Unique ID representing the original URL
  * 
  * @example
  * generateShortUrl('https://www.google.com');
@@ -96,7 +96,7 @@ async function generateShortUrl(original_url) {
  * Protocol,
  * Path,
  * Port number,
- * Query string,
+ * Query string, and
  * Fragment identifier.
  *
  * @param {String} url - URL to be normalized
@@ -114,14 +114,14 @@ function normalizeUrl(url) {
 }
 
 /**
- * @api {post} /api/shorturl Post Original URL to be shortened and stored in a database
+ * @api {post} /api/shorturl Post Original URL to be shortened and stored in the database
  * @apiName ShortenUrl
  * @apiGroup Url
  * 
  * @apiParam {String} url Required URL string encoded in the request body as a URL-encoded type
  *
  * @apiSuccess {String} original_url Input URL
- * @apiSuccess {Number} short_url Short representation of the original URL
+ * @apiSuccess {String} Short_url Unique ID representing the original URL
  *
  * @apiSuccessExample {json} Success-Response:
  *     HTTP/1.1 200 OK
@@ -168,7 +168,7 @@ app.post('/api/shorturl', (req, res) => {
  * @apiName RedirectUrl
  * @apiGroup Url
  * 
- * @apiParam {String} short_url Required URL string representation of a serial number. A route paramater.
+ * @apiParam {String} short_url Required unique ID string representation of the original URL. A route paramater.
  * 
  * @apiSuccess (302) {String} Redirect Successful redirection to the original URL
  * 
